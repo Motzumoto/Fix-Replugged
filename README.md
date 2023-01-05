@@ -21,4 +21,4 @@ launches canary for you
 Thats easy, you can star the repo or add your own lines of code if you have suggestions.
 
 # Join my Discord server
-Join (here)[https://discord.gg/cNRNeaX]
+Join [here](https://discord.gg/cNRNeaX)
