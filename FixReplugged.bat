@@ -1,3 +1,4 @@
+Copy code
 @echo off
 
 :check_connection
@@ -5,8 +6,8 @@ cls
 echo Checking for internet connection...
 ping -n 1 google.com >nul 2>&1
 if not %errorlevel% == 0 (
-  echo No internet connection detected. Waiting 60 seconds before trying again.
-  timeout /t 60 >nul 2>&1
+  echo No internet connection detected. Waiting 15 seconds before trying again.
+  timeout /t 15 >nul 2>&1
   goto check_connection
 ) else (
   echo Internet connection detected. Proceeding with script.
@@ -17,7 +18,7 @@ echo Checking if Node.js is installed...
 where npm >nul 2>&1
 if %errorlevel% == 0 (
   echo Node.js is already installed.
-  goto check_discordcanary
+  goto check_discord
 ) else (
   echo Node.js is not installed on this system.
   set /p install="Do you want to install it now? (y/n) "
@@ -42,72 +43,99 @@ if %ERRORLEVEL% == 0 (
   goto :eof
 )
 
-:check_discordcanary
-echo Stopping DiscordCanary process...
-taskkill /f /im discordcanary.exe >nul 2>&1
-if not %errorlevel% == 0 (
-  echo Failed to stop DiscordCanary process.
+:check_discord
+set /p discordversion="Which discord version you want to install replugged on? (stable,ptb,canary,development) [canary]: " /t 20
+if "%discordversion%" == "" (set discordversion=canary)
+
+if /i "%discordversion%" == "stable" (
+  echo Stopping Discord process...
+  taskkill /f /im discord.exe >nul 2>&1
+  if not %errorlevel% == 0 (
+    echo Failed to stop Discord process.
+  )
+) else if /i "%discordversion%" == "ptb" (
+  echo Stopping DiscordPTB process...
+  taskkill /f /im discordptb.exe >nul 2>&1
+  if not %errorlevel% == 0 (
+    echo Failed to stop DiscordPTB process.
+  )
+) else if /i "%discordversion%" == "canary" (
+  echo Stopping DiscordCanary process...
+  taskkill /f /im discordcanary.exe >nul 2>&1
+  if not %errorlevel% == 0 (
+    echo Failed to stop DiscordCanary process.
+  )
+) else if /i "%discordversion%" == "development" (
+  echo Stopping DiscordDevelopment process...
+  taskkill /f /im discorddevelopment.exe >nul 2>&1
+  if not %errorlevel% == 0 (
+    echo Failed to stop DiscordDevelopment process.
+  )
+) else (
+  echo Invalid input. Exiting script.
+  goto :eof
 )
 
 echo Installing pnpm...
 call npm i -g pnpm >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to install pnpm.
-  goto :eof
 )
 
 echo Changing to %userprofile%\replugged directory...
 PUSHD %userprofile%\replugged >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to change to %userprofile%\replugged directory.
-  goto :eof
 )
 
 echo Updating global git configuration...
 call git config --global --add safe.directory %userprofile%\replugged >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to update global git configuration.
-  goto :eof
 )
 
 echo Pulling latest changes from Git repository...
 call git pull >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to pull latest changes from Git repository.
-  goto :eof
 )
 
-echo Unplugging DiscordCanary...
-call pnpm run unplug canary >nul 2>&1
+echo Unplugging %discordversion%...
+call pnpm run unplug %discordversion% >nul 2>&1
 if not %errorlevel% == 0 (
-  echo Failed to unplug DiscordCanary.
-  goto :eof
+  echo Failed to unplug %discordversion%.
 )
 
 echo Installing dependencies...
 call pnpm i >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to install dependencies.
-  goto :eof
 )
 echo Building project...
 call pnpm run build >nul 2>&1
 if not %errorlevel% == 0 (
   echo Failed to build project.
-  goto :eof
 )
 
-echo Plugging DiscordCanary...
-call pnpm run plug canary >nul 2>&1
+echo Plugging %discordversion%...
+call pnpm run plug %discordversion% >nul 2>&1
 if not %errorlevel% == 0 (
-  echo Failed to plug DiscordCanary.
-  goto :eof
+  echo Failed to plug %discordversion%.
 )
 
-echo Launching DiscordCanary update process...
-START "" "%localappdata%\DiscordCanary\Update.exe" --processStart discordcanary.exe
+echo Launching %discordversion% update process...
+if /i "%discordversion%" == "stable" (
+  START "" "%localappdata%\Discord\Update.exe" --processStart discord.exe
+) else if /i "%discordversion%" == "ptb" (
+  START "" "%localappdata%\DiscordPTB\Update.exe" --processStart discordptb.exe
+) else if /i "%discordversion%" == "canary" (
+  START "" "%localappdata%\DiscordCanary\Update.exe" --processStart discordcanary.exe
+) else if /i "%discordversion%" == "development" (
+  START "" "%localappdata%\DiscordDevelopment\Update.exe" --processStart discorddevelopment.exe
+)
 
 echo Restoring original current directory...
 POPD
 
 echo Done.
+
