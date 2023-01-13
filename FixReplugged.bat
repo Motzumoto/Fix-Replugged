@@ -1,4 +1,3 @@
-Copy code
 @echo off
 
 :check_connection
